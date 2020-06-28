@@ -21,10 +21,10 @@ fn main() {
         let board = board.clone();
         move |event: KeyDownEvent| {
             match event.key().as_ref() {
-                "ArrowLeft" => board.borrow_mut().update(),
-                "ArrowRight" => (),
-                "ArrowUp" => (),
-                "ArrowDown" => (),
+                "ArrowLeft" => board.borrow_mut().set_direction(snake::Direction::Left),
+                "ArrowRight" => board.borrow_mut().set_direction(snake::Direction::Right),
+                "ArrowUp" => board.borrow_mut().set_direction(snake::Direction::Up),
+                "ArrowDown" => board.borrow_mut().set_direction(snake::Direction::Down),
                 _ => (),
             };
         }
