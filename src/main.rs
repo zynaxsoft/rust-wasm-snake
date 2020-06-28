@@ -31,14 +31,16 @@ fn main() {
     };
     document().add_event_listener(listen_movement);
 
-    game_loop(board.clone(), 1000);
+    board.borrow_mut().update();
+    game_loop(board.clone());
 }
 
-fn game_loop(board: Rc<RefCell<board::Board>>, step_ms: u32) {
+fn game_loop(board: Rc<RefCell<board::Board>>) {
+    let step_ms = board.borrow().step_ms();
     set_timeout(
         move || {
             board.borrow_mut().update();
-            game_loop(board, step_ms);
+            game_loop(board);
         },
         step_ms,
     )
