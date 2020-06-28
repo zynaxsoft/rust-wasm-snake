@@ -18,6 +18,27 @@ impl Direction {
             Self::Right => (1, 0),
         }
     }
+
+    pub fn opposite(&self, other: Self) -> bool {
+        match self {
+            Self::Up => match other {
+                Self::Down => true,
+                _ => false,
+            },
+            Self::Down => match other {
+                Self::Up => true,
+                _ => false,
+            },
+            Self::Left => match other {
+                Self::Right => true,
+                _ => false,
+            },
+            Self::Right => match other {
+                Self::Left => true,
+                _ => false,
+            },
+        }
+    }
 }
 
 trait Step {

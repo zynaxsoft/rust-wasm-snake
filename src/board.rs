@@ -60,7 +60,9 @@ impl Board {
     }
 
     pub fn set_direction(&mut self, direction: Direction) {
-        self.state.direction = direction;
+        if !self.state.direction.opposite(direction) {
+            self.state.direction = direction;
+        }
     }
 }
 
