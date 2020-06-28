@@ -120,9 +120,10 @@ pub struct Snake {
 
 impl Snake {
     pub fn new(x: i32, y: i32) -> Self {
+        let tails = vec![Tail { x: x - 1, y }, Tail { x: x - 2, y }];
         Self {
             head: Head { x, y },
-            tails: Vec::new(),
+            tails,
             direction: Direction::Right,
         }
     }
@@ -130,9 +131,13 @@ impl Snake {
     fn step(&mut self, direction: Direction, state: &mut State) {
         self.direction = direction;
         let offset = self.direction.to_offset();
+        let (mut prev_x, mut prev_y) = (self.head.x, self.head.y);
         self.head.step(offset, state);
         for tail in self.tails.iter_mut() {
-            tail.step(offset, state);
+            let (tmp_x, tmp_y) = (tail.x, tail.y);
+            tail.set_xy(prev_x, prev_y);
+            prev_x = tmp_x;
+            prev_y = tmp_y;
         }
     }
 }
