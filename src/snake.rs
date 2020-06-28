@@ -41,9 +41,20 @@ impl Direction {
     }
 }
 
-trait Step {
+struct Head {
+    pub x: i32,
+    pub y: i32,
+}
+
+impl Drawable for Head {
+    fn draw(&mut self, canvas: &Canvas, state: &mut State) {
+        canvas.draw(self.x as u32, self.y as u32, "red");
+    }
+}
+
+impl Head {
     fn step(&mut self, offset: (i32, i32), state: &State) {
-        let (x, y) = self.get_xy();
+        let (x, y) = (self.x, self.y);
         let x = x + offset.0;
         let y = y + offset.1;
         self.pass_or_warp(x, y, state);
@@ -61,32 +72,8 @@ trait Step {
         } else if y > state.board_height as i32 - 1 {
             next_y = 0;
         }
-        self.set_xy(next_x, next_y);
-    }
-
-    fn get_xy(&self) -> (i32, i32);
-    fn set_xy(&mut self, x: i32, y: i32);
-}
-
-struct Head {
-    pub x: i32,
-    pub y: i32,
-}
-
-impl Drawable for Head {
-    fn draw(&mut self, canvas: &Canvas, state: &mut State) {
-        canvas.draw(self.x as u32, self.y as u32, "red");
-    }
-}
-
-impl Step for Head {
-    fn get_xy(&self) -> (i32, i32) {
-        (self.x, self.y)
-    }
-
-    fn set_xy(&mut self, x: i32, y: i32) {
-        self.x = x;
-        self.y = y;
+        self.x = next_x;
+        self.y = next_y;
     }
 }
 
@@ -98,17 +85,6 @@ struct Tail {
 impl Drawable for Tail {
     fn draw(&mut self, canvas: &Canvas, state: &mut State) {
         canvas.draw(self.x as u32, self.y as u32, "green");
-    }
-}
-
-impl Step for Tail {
-    fn get_xy(&self) -> (i32, i32) {
-        (self.x, self.y)
-    }
-
-    fn set_xy(&mut self, x: i32, y: i32) {
-        self.x = x;
-        self.y = y;
     }
 }
 
@@ -135,7 +111,8 @@ impl Snake {
         self.head.step(offset, state);
         for tail in self.tails.iter_mut() {
             let (tmp_x, tmp_y) = (tail.x, tail.y);
-            tail.set_xy(prev_x, prev_y);
+            tail.x = prev_x;
+            tail.y = prev_y;
             prev_x = tmp_x;
             prev_y = tmp_y;
         }

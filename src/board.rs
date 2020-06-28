@@ -27,8 +27,6 @@ impl State {
 
 pub struct Board {
     pub canvas: Canvas,
-    width: u32,
-    height: u32,
     drawables: Vec<Box<dyn Drawable>>,
     state: State,
 }
@@ -41,8 +39,6 @@ impl Board {
         let drawables: Vec<Box<dyn Drawable>> = vec![Box::new(snake)];
         Self {
             canvas,
-            width,
-            height,
             drawables,
             state,
         }
