@@ -10,6 +10,8 @@ use stdweb::web::{
 
 mod board;
 mod canvas;
+mod collision;
+mod consumable;
 mod snake;
 
 fn main() {
@@ -40,7 +42,11 @@ fn game_loop(board: Rc<RefCell<board::Board>>) {
     set_timeout(
         move || {
             board.borrow_mut().update();
-            game_loop(board);
+            if !board.borrow().is_game_ded() {
+                game_loop(board);
+            } else {
+                return;
+            }
         },
         step_ms,
     )

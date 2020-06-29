@@ -1,5 +1,9 @@
 use super::canvas::Canvas;
+use super::collision::Collidable;
+use super::consumable::Food;
 use super::snake::{Direction, Snake};
+use std::cell::RefCell;
+use std::rc::Rc;
 use stdweb::js;
 use stdweb::unstable::TryInto;
 
@@ -12,6 +16,8 @@ pub struct State {
     pub board_height: u32,
     pub step_ms: u32,
     pub direction: Direction,
+    pub collision_list: Vec<Rc<RefCell<dyn Collidable>>>,
+    pub ded: bool,
 }
 
 impl State {
@@ -21,22 +27,32 @@ impl State {
             board_height: height,
             step_ms,
             direction: Direction::Right,
+            collision_list: Vec::new(),
+            ded: false,
         }
+    }
+
+    pub fn add_collidable(&mut self, collidable: Rc<RefCell<dyn Collidable>>) {
+        self.collision_list.push(collidable);
     }
 }
 
 pub struct Board {
     pub canvas: Canvas,
-    drawables: Vec<Box<dyn Drawable>>,
+    drawables: Vec<Rc<RefCell<dyn Drawable>>>,
     state: State,
 }
 
 impl Board {
     pub fn new(width: u32, height: u32) -> Self {
         let canvas = Canvas::new("#canvas", width, height);
-        let state = State::new(100, width, height);
+        let mut state = State::new(100, width, height);
         let snake = Snake::new(random_u32(width) as i32, random_u32(height) as i32);
-        let drawables: Vec<Box<dyn Drawable>> = vec![Box::new(snake)];
+        let snake = Rc::new(RefCell::new(snake));
+        let food = Food::new(random_u32(width) as i32, random_u32(height) as i32);
+        let food = Rc::new(RefCell::new(food));
+        let drawables: Vec<Rc<RefCell<dyn Drawable>>> = vec![snake.clone(), food.clone()];
+        state.add_collidable(food.clone());
         Self {
             canvas,
             drawables,
@@ -47,7 +63,7 @@ impl Board {
     pub fn update(&mut self) {
         self.canvas.clear_all();
         for d in self.drawables.iter_mut() {
-            d.draw(&self.canvas, &mut self.state);
+            d.borrow_mut().draw(&self.canvas, &mut self.state);
         }
     }
 
@@ -60,9 +76,13 @@ impl Board {
             self.state.direction = direction;
         }
     }
+
+    pub fn is_game_ded(&self) -> bool {
+        self.state.ded
+    }
 }
 
-fn random_u32(max: u32) -> u32 {
+pub fn random_u32(max: u32) -> u32 {
     let random = js! { return Math.floor(Math.random() * @{max}) }
         .try_into()
         .unwrap();

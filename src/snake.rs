@@ -1,5 +1,6 @@
 use super::board::{Drawable, State};
 use super::canvas::Canvas;
+use super::collision::Collidable;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Direction {
@@ -88,10 +89,25 @@ impl Drawable for Tail {
     }
 }
 
+impl Collidable for Tail {
+    fn consumed_by(&mut self, snake: &mut Snake, state: &State) {
+        snake.ded = true;
+    }
+
+    fn check_collide(&self, x: i32, y: i32) -> bool {
+        if self.x == x && self.y == y {
+            true
+        } else {
+            false
+        }
+    }
+}
+
 pub struct Snake {
     head: Head,
     tails: Vec<Tail>,
     direction: Direction,
+    ded: bool,
 }
 
 impl Snake {
@@ -101,10 +117,14 @@ impl Snake {
             head: Head { x, y },
             tails,
             direction: Direction::Right,
+            ded: false,
         }
     }
 
     fn step(&mut self, direction: Direction, state: &mut State) {
+        if self.ded {
+            state.ded = true;
+        }
         self.direction = direction;
         let offset = self.direction.to_offset();
         let (mut prev_x, mut prev_y) = (self.head.x, self.head.y);
@@ -117,14 +137,53 @@ impl Snake {
             prev_y = tmp_y;
         }
     }
+
+    pub fn add_tail(&mut self) {
+        let tail = Tail {
+            x: self.head.x,
+            y: self.head.y,
+        };
+        self.tails.push(tail);
+    }
+
+    fn perform_collide(&mut self, state: &mut State) {
+        for tail in self.tails.iter_mut() {
+            let collided = tail.check_collide(self.head.x, self.head.y);
+            if collided {
+                self.ded = true;
+            }
+        }
+        for collidable in state.collision_list.iter().clone() {
+            let collided = collidable.borrow().check_collide(self.head.x, self.head.y);
+            if collided {
+                collidable.borrow_mut().consumed_by(self, state);
+            }
+        }
+    }
 }
 
 impl Drawable for Snake {
     fn draw(&mut self, canvas: &Canvas, state: &mut State) {
         self.step(state.direction, state);
+        self.perform_collide(state);
         self.head.draw(canvas, state);
         for tail in self.tails.iter_mut() {
             tail.draw(canvas, state);
         }
+    }
+}
+
+impl Collidable for Snake {
+    fn consumed_by(&mut self, snake: &mut Snake, state: &State) {
+        snake.ded = true;
+    }
+
+    fn check_collide(&self, x: i32, y: i32) -> bool {
+        for tail in self.tails.iter() {
+            if tail.check_collide(x, y) {
+                return true;
+            }
+        }
+        false
     }
 }

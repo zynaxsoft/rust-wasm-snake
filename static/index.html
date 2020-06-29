@@ -5,11 +5,24 @@
 #canvas {
   border-style: solid;
   border-color: black;
+  display: inline;
+}
+
+#canvas-container {
+  width: 100%;
+  text-align: center;
+}
+
+#github {
+  text-align: center;
 }
         </style>
     </head>
     <body>
+    <div id="canvas-container">
         <canvas id="canvas" width="800" height="800"></canvas>
         <script src="snake.js"></script>
+    </div>
+    <h3 id="github"><a href="https://github.com/zynaxsoft/rust-wasm-snake" target="_blank">Github</a><h3>
     </body>
 </html>
